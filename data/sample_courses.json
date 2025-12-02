@@ -1,0 +1,124 @@
+{
+  "courses": [
+    {
+      "id": "MAT101",
+      "name": "Cálculo I",
+      "start_time": 8.0,
+      "end_time": 10.0,
+      "credits": 4,
+      "prerequisites": []
+    },
+    {
+      "id": "FIS101",
+      "name": "Física I",
+      "start_time": 10.0,
+      "end_time": 12.0,
+      "credits": 4,
+      "prerequisites": []
+    },
+    {
+      "id": "PROG101",
+      "name": "Introdução à Programação",
+      "start_time": 8.0,
+      "end_time": 10.0,
+      "credits": 4,
+      "prerequisites": []
+    },
+    {
+      "id": "MAT102",
+      "name": "Álgebra Linear",
+      "start_time": 14.0,
+      "end_time": 16.0,
+      "credits": 4,
+      "prerequisites": ["MAT101"]
+    },
+    {
+      "id": "PROG102",
+      "name": "Estruturas de Dados",
+      "start_time": 10.0,
+      "end_time": 12.0,
+      "credits": 4,
+      "prerequisites": ["PROG101"]
+    },
+    {
+      "id": "BD101",
+      "name": "Banco de Dados",
+      "start_time": 14.0,
+      "end_time": 16.0,
+      "credits": 3,
+      "prerequisites": ["PROG101"]
+    },
+    {
+      "id": "SO101",
+      "name": "Sistemas Operacionais",
+      "start_time": 16.0,
+      "end_time": 18.0,
+      "credits": 4,
+      "prerequisites": ["PROG102"]
+    },
+    {
+      "id": "RC101",
+      "name": "Redes de Computadores",
+      "start_time": 8.0,
+      "end_time": 10.0,
+      "credits": 3,
+      "prerequisites": []
+    },
+    {
+      "id": "WEB101",
+      "name": "Desenvolvimento Web",
+      "start_time": 13.0,
+      "end_time": 15.0,
+      "credits": 3,
+      "prerequisites": ["PROG101"]
+    },
+    {
+      "id": "IA101",
+      "name": "Inteligência Artificial",
+      "start_time": 16.0,
+      "end_time": 18.0,
+      "credits": 4,
+      "prerequisites": ["MAT101", "PROG102"]
+    },
+    {
+      "id": "ENG101",
+      "name": "Engenharia de Software",
+      "start_time": 10.0,
+      "end_time": 12.0,
+      "credits": 3,
+      "prerequisites": ["PROG102"]
+    },
+    {
+      "id": "SEG101",
+      "name": "Segurança da Informação",
+      "start_time": 14.0,
+      "end_time": 16.0,
+      "credits": 3,
+      "prerequisites": ["RC101", "BD101"]
+    },
+    {
+      "id": "ML101",
+      "name": "Machine Learning",
+      "start_time": 8.0,
+      "end_time": 11.0,
+      "credits": 5,
+      "prerequisites": ["MAT102", "PROG102"]
+    },
+    {
+      "id": "COMP101",
+      "name": "Compiladores",
+      "start_time": 13.0,
+      "end_time": 16.0,
+      "credits": 4,
+      "prerequisites": ["PROG102"]
+    },
+    {
+      "id": "ALG101",
+      "name": "Análise de Algoritmos",
+      "start_time": 16.0,
+      "end_time": 18.0,
+      "credits": 4,
+      "prerequisites": ["PROG102", "MAT101"]
+    }
+  ]
+}
