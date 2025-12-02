@@ -122,12 +122,19 @@ def test_compare_algorithms_runs():
     
     result = compare_algorithms(courses)
     
-    assert 'greedy' in result
-    assert 'ilp' in result
-    assert 'greedy_time' in result
-    assert 'ilp_time' in result
-    assert 'credits_difference' in result
-    assert 'gap_difference' in result
+    # Verifica estrutura com 3 funções objetivo
+    assert 'fo1' in result
+    assert 'fo2' in result
+    assert 'fo3' in result
+    
+    # Verifica que cada FO tem resultados de ambos algoritmos
+    for fo in ['fo1', 'fo2', 'fo3']:
+        assert 'greedy' in result[fo]
+        assert 'ilp' in result[fo]
+        assert 'courses' in result[fo]['greedy']
+        assert 'credits' in result[fo]['greedy']
+        assert 'gap' in result[fo]['greedy']
+        assert 'time' in result[fo]['greedy']
 
 
 def test_complex_scenario():

@@ -11,17 +11,172 @@ from src.course import Course
 from src.utils import calculate_total_credits, calculate_total_gap
 
 
+def ilp_schedule_max_credits(
+    available_courses: List[Course],
+    completed_course_ids: Set[str] = None
+) -> Tuple[List[Course], int, float]:
+    """
+    Implementa o algoritmo ILP focado em MAXIMIZAR CRÉDITOS (FO1).
+    
+    Função objetivo: maximize (total_credits)
+    
+    Args:
+        available_courses: Lista de cursos disponíveis para agendamento
+        completed_course_ids: Conjunto de IDs de cursos já concluídos
+        
+    Returns:
+        Tupla contendo:
+        - Lista de cursos selecionados
+        - Total de créditos
+        - Total de intervalo (gap) em horas
+    """
+    if completed_course_ids is None:
+        completed_course_ids = set()
+    
+    if not available_courses:
+        return [], 0, 0.0
+    
+    # Filtra cursos cujos pré-requisitos foram satisfeitos
+    eligible_courses = [
+        course for course in available_courses
+        if all(prereq in completed_course_ids for prereq in (course.prerequisites or []))
+    ]
+    
+    if not eligible_courses:
+        return [], 0, 0.0
+    
+    # Cria o problema de otimização
+    prob = pulp.LpProblem("Course_Scheduling_Max_Credits", pulp.LpMaximize)
+    
+    # Variáveis de decisão: x[i] = 1 se o curso i é selecionado, 0 caso contrário
+    x = {}
+    for i, course in enumerate(eligible_courses):
+        x[i] = pulp.LpVariable(f"x_{course.id}", cat='Binary')
+    
+    # Função objetivo: maximizar apenas créditos
+    prob += pulp.lpSum([x[i] * course.credits for i, course in enumerate(eligible_courses)])
+    
+    # Restrições de conflito
+    for i, course_i in enumerate(eligible_courses):
+        for j, course_j in enumerate(eligible_courses):
+            if i < j and course_i.conflicts_with(course_j):
+                prob += x[i] + x[j] <= 1
+    
+    # Resolve o problema
+    prob.solve(pulp.PULP_CBC_CMD(msg=0))
+    
+    # Extrai a solução
+    selected_courses = []
+    for i, course in enumerate(eligible_courses):
+        if pulp.value(x[i]) == 1:
+            selected_courses.append(course)
+    
+    total_credits = calculate_total_credits(selected_courses)
+    total_gap = calculate_total_gap(selected_courses)
+    
+    return selected_courses, total_credits, total_gap
+
+
+def ilp_schedule_min_gaps(
+    available_courses: List[Course],
+    completed_course_ids: Set[str] = None
+) -> Tuple[List[Course], int, float]:
+    """
+    Implementa o algoritmo ILP focado em MINIMIZAR INTERVALOS (FO2).
+    
+    Função objetivo: minimize (total_gap)
+    
+    Args:
+        available_courses: Lista de cursos disponíveis para agendamento
+        completed_course_ids: Conjunto de IDs de cursos já concluídos
+        
+    Returns:
+        Tupla contendo:
+        - Lista de cursos selecionados
+        - Total de créditos
+        - Total de intervalo (gap) em horas
+    """
+    if completed_course_ids is None:
+        completed_course_ids = set()
+    
+    if not available_courses:
+        return [], 0, 0.0
+    
+    # Filtra cursos cujos pré-requisitos foram satisfeitos
+    eligible_courses = [
+        course for course in available_courses
+        if all(prereq in completed_course_ids for prereq in (course.prerequisites or []))
+    ]
+    
+    if not eligible_courses:
+        return [], 0, 0.0
+    
+    # Cria o problema de otimização (MINIMIZAÇÃO)
+    prob = pulp.LpProblem("Course_Scheduling_Min_Gaps", pulp.LpMinimize)
+    
+    # Variáveis de decisão
+    x = {}
+    for i, course in enumerate(eligible_courses):
+        x[i] = pulp.LpVariable(f"x_{course.id}", cat='Binary')
+    
+    # Variáveis auxiliares para gaps
+    y = {}
+    gap_terms = []
+    
+    for i, course_i in enumerate(eligible_courses):
+        for j, course_j in enumerate(eligible_courses):
+            if i < j:
+                if course_i.end_time <= course_j.start_time:
+                    y[(i, j)] = pulp.LpVariable(f"y_{i}_{j}", cat='Binary')
+                    
+                    prob += y[(i, j)] <= x[i]
+                    prob += y[(i, j)] <= x[j]
+                    prob += y[(i, j)] >= x[i] + x[j] - 1
+                    
+                    gap = course_j.start_time - course_i.end_time
+                    gap_terms.append(y[(i, j)] * gap)
+    
+    # Função objetivo: minimizar gaps
+    if gap_terms:
+        prob += pulp.lpSum(gap_terms)
+    else:
+        # Se não há gaps possíveis, minimiza número de cursos não selecionados
+        prob += pulp.lpSum([1 - x[i] for i in range(len(eligible_courses))])
+    
+    # Restrições de conflito
+    for i, course_i in enumerate(eligible_courses):
+        for j, course_j in enumerate(eligible_courses):
+            if i < j and course_i.conflicts_with(course_j):
+                prob += x[i] + x[j] <= 1
+    
+    # Resolve o problema
+    prob.solve(pulp.PULP_CBC_CMD(msg=0))
+    
+    # Extrai a solução
+    selected_courses = []
+    for i, course in enumerate(eligible_courses):
+        if pulp.value(x[i]) == 1:
+            selected_courses.append(course)
+    
+    total_credits = calculate_total_credits(selected_courses)
+    total_gap = calculate_total_gap(selected_courses)
+    
+    return selected_courses, total_credits, total_gap
+
+
 def ilp_schedule(
     available_courses: List[Course],
     completed_course_ids: Set[str] = None,
     gap_penalty: float = 0.1
 ) -> Tuple[List[Course], int, float]:
     """
-    Implementa o algoritmo ILP para agendamento ótimo de cursos.
+    Implementa o algoritmo ILP COMBINADO para agendamento ótimo de cursos (FO3).
     
     O problema é formulado como um problema de otimização onde:
     - Maximizamos: (créditos totais) - (penalidade * gap total)
     - Restrições: não pode haver conflitos de horário e pré-requisitos devem ser satisfeitos
+    
+    Esta é uma abordagem balanceada que considera ambos os objetivos.
     
     Args:
         available_courses: Lista de cursos disponíveis para agendamento
@@ -50,7 +205,7 @@ def ilp_schedule(
         return [], 0, 0.0
     
     # Cria o problema de otimização
-    prob = pulp.LpProblem("Course_Scheduling", pulp.LpMaximize)
+    prob = pulp.LpProblem("Course_Scheduling_Combined", pulp.LpMaximize)
     
     # Variáveis de decisão: x[i] = 1 se o curso i é selecionado, 0 caso contrário
     x = {}

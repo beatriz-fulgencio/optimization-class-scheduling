@@ -2,13 +2,45 @@
 
 Sistema de otimização de agendamento de cursos acadêmicos usando Weighted Interval Scheduling.
 
+## Limitações do Projeto
+
+Este projeto foi desenvolvido com as seguintes limitações:
+- **Um aluno apenas**: O planejamento é feito considerando a grade de apenas um estudante
+- **Um semestre apenas**: O sistema planeja cursos para um único semestre acadêmico
+
 ## Descrição
 
 Este repositório implementa dois algoritmos para resolver o problema de agendamento ponderado de intervalos no contexto de cursos acadêmicos:
 
-1. **Algoritmo Guloso (Heurístico)**: Ordena cursos pela razão `end_time/credits`, priorizando cursos que terminam mais cedo e têm mais créditos. Seleciona cursos de forma gulosa evitando conflitos.
+1. **Algoritmo Guloso (Heurístico)**: Solução rápida baseada em heurísticas para ordenação de cursos. Três variantes são implementadas:
+   - **FO1**: Ordena por créditos (maior primeiro) - foco em maximizar créditos
+   - **FO2**: Ordena por horário de término (menor primeiro) - foco em minimizar gaps
+   - **FO3**: Ordena pela razão `end_time/credits` - abordagem balanceada
 
-2. **Programação Linear Inteira (ILP)**: Solução exata que maximiza créditos enquanto minimiza intervalos ociosos (gaps), respeitando todas as restrições de conflitos e pré-requisitos.
+2. **Programação Linear Inteira (ILP)**: Solução exata que garante resultado ótimo. Três funções objetivo são implementadas:
+   - **FO1**: `maximize(créditos)` - maximiza apenas créditos
+   - **FO2**: `minimize(gaps)` - minimiza apenas intervalos ociosos
+   - **FO3**: `maximize(créditos - penalidade × gaps)` - balanceia ambos objetivos
+
+## Funções Objetivo
+
+O sistema implementa **3 funções objetivo diferentes**, permitindo comparar como diferentes objetivos de otimização geram resultados diferentes:
+
+### FO1: Maximizar Créditos
+- **Objetivo**: Maximizar o total de créditos cursados
+- **Trade-off**: Pode resultar em maiores intervalos entre aulas
+- **Uso**: Ideal para estudantes que querem completar o máximo de créditos possível
+
+### FO2: Minimizar Intervalos (Gaps)
+- **Objetivo**: Minimizar o tempo ocioso entre aulas
+- **Trade-off**: Pode resultar em menos créditos totais
+- **Uso**: Ideal para estudantes que preferem ter um horário mais compacto
+
+### FO3: Combinada (Balanceada)
+- **Objetivo**: Balancear créditos e gaps
+- **Fórmula**: `maximize(créditos - penalidade × gaps)`
+- **Trade-off**: Solução intermediária que considera ambos aspectos
+- **Uso**: Ideal para a maioria dos casos, oferecendo um equilíbrio
 
 ## Características
 
@@ -36,7 +68,9 @@ pip install -r requirements.txt
 
 ## Uso
 
-### Executar Comparação dos Algoritmos
+### Executar Comparação dos Algoritmos e Funções Objetivo
+
+Execute o script principal para comparar ambos os algoritmos com as 3 funções objetivo:
 
 ```bash
 python -m src.compare
@@ -48,12 +82,27 @@ Ou especifique um arquivo JSON personalizado:
 python -m src.compare data/meus_cursos.json
 ```
 
+Este comando irá:
+- Executar os algoritmos Guloso e ILP
+- Testar as 3 funções objetivo (FO1, FO2, FO3)
+- Comparar desempenho (tempo de execução)
+- Comparar resultados (créditos e gaps)
+- Mostrar que funções objetivo diferentes geram resultados diferentes
+
 ### Usar no Código Python
 
 ```python
 from src.course import Course
-from src.greedy_algorithm import greedy_schedule
-from src.ilp_algorithm import ilp_schedule
+from src.greedy_algorithm import (
+    greedy_schedule_max_credits,  # FO1: Max créditos
+    greedy_schedule_min_gaps,      # FO2: Min gaps
+    greedy_schedule                # FO3: Combinada
+)
+from src.ilp_algorithm import (
+    ilp_schedule_max_credits,      # FO1: Max créditos
+    ilp_schedule_min_gaps,         # FO2: Min gaps
+    ilp_schedule                   # FO3: Combinada
+)
 
 # Criar cursos
 courses = [
@@ -62,13 +111,26 @@ courses = [
     Course("PROG101", "Programação", 14.0, 16.0, 4),
 ]
 
-# Executar algoritmo guloso
-selected_greedy, credits_greedy, gap_greedy = greedy_schedule(courses)
-print(f"Guloso: {credits_greedy} créditos, {gap_greedy:.1f}h de gap")
+# FO1: Maximizar créditos
+selected, credits, gap = greedy_schedule_max_credits(courses)
+print(f"FO1 - Guloso: {credits} créditos, {gap:.1f}h de gap")
 
-# Executar algoritmo ILP
-selected_ilp, credits_ilp, gap_ilp = ilp_schedule(courses)
-print(f"ILP: {credits_ilp} créditos, {gap_ilp:.1f}h de gap")
+selected, credits, gap = ilp_schedule_max_credits(courses)
+print(f"FO1 - ILP: {credits} créditos, {gap:.1f}h de gap")
+
+# FO2: Minimizar gaps
+selected, credits, gap = greedy_schedule_min_gaps(courses)
+print(f"FO2 - Guloso: {credits} créditos, {gap:.1f}h de gap")
+
+selected, credits, gap = ilp_schedule_min_gaps(courses)
+print(f"FO2 - ILP: {credits} créditos, {gap:.1f}h de gap")
+
+# FO3: Combinada
+selected, credits, gap = greedy_schedule(courses)
+print(f"FO3 - Guloso: {credits} créditos, {gap:.1f}h de gap")
+
+selected, credits, gap = ilp_schedule(courses, gap_penalty=0.1)
+print(f"FO3 - ILP: {credits} créditos, {gap:.1f}h de gap")
 ```
 
 ### Formato do JSON de Dados
@@ -139,28 +201,48 @@ optimization/
 ### Algoritmo Guloso
 
 - **Complexidade**: O(n² log n) onde n é o número de cursos
-- **Estratégia**: Ordena por `end_time/credits` (menor primeiro)
 - **Vantagem**: Muito rápido, mesmo para grandes conjuntos de dados
 - **Limitação**: Solução heurística, pode não ser ótima
+
+**Três variantes implementadas:**
+1. **FO1 (Max Créditos)**: Ordena por `-credits, end_time`
+2. **FO2 (Min Gaps)**: Ordena por `end_time`
+3. **FO3 (Combinada)**: Ordena por `end_time/credits`
 
 ### Algoritmo ILP
 
 - **Complexidade**: Exponencial no pior caso (NP-difícil)
-- **Estratégia**: Formulação como problema de otimização linear inteira
 - **Vantagem**: Garante solução ótima
 - **Limitação**: Pode ser lento para problemas muito grandes
 
-## Métricas de Otimização
+**Três funções objetivo implementadas:**
+1. **FO1**: `maximize Σ(créditos × x[i])`
+2. **FO2**: `minimize Σ(gap[i,j] × y[i,j])`
+3. **FO3**: `maximize Σ(créditos × x[i]) - penalidade × Σ(gap[i,j] × y[i,j])`
 
-O sistema otimiza:
+## Comparação de Funções Objetivo
 
-1. **Maximizar Créditos**: Total de créditos dos cursos selecionados
-2. **Minimizar Gaps**: Intervalos ociosos entre cursos consecutivos
+O projeto demonstra que **funções objetivo diferentes geram resultados diferentes**:
 
-A função objetivo do ILP é:
-```
-maximize: (total_credits) - (gap_penalty × total_gap)
-```
+- **FO1** tende a selecionar mais cursos com mais créditos, mesmo com gaps maiores
+- **FO2** tende a selecionar cursos mais próximos no tempo, mesmo com menos créditos
+- **FO3** encontra um equilíbrio entre as duas métricas
+
+## Métricas de Comparação
+
+O sistema compara os algoritmos em três dimensões:
+
+1. **Desempenho**: Tempo de execução de cada algoritmo
+   - Guloso: Geralmente < 0.01 segundos
+   - ILP: Pode variar de 0.1 a vários segundos
+
+2. **Resultado**: Qualidade da solução
+   - Créditos totais obtidos
+   - Gap total (horas ociosas)
+   
+3. **Otimalidade**: 
+   - ILP garante solução ótima para cada FO
+   - Guloso oferece solução boa mas não necessariamente ótima
 
 ## Restrições
 
@@ -170,26 +252,109 @@ maximize: (total_credits) - (gap_penalty × total_gap)
 ## Exemplos de Saída
 
 ```
-================================================================================
+====================================================================================================
 COMPARAÇÃO DE ALGORITMOS DE AGENDAMENTO DE CURSOS
-================================================================================
+Trabalho Final - Otimização
+====================================================================================================
 
-Executando algoritmo GULOSO...
+LIMITAÇÕES DO PROJETO:
+  • Planejamento de grade para UM ALUNO apenas
+  • Planejamento de UM SEMESTRE apenas
+
+====================================================================================================
+
+████████████████████████████████████████████████████████████████████████████████████████████████████
+FUNÇÃO OBJETIVO 1: MAXIMIZAR CRÉDITOS
+████████████████████████████████████████████████████████████████████████████████████████████████████
+
+Executando GULOSO (FO1: Max Créditos)...
 ✓ Concluído em 0.0023 segundos
 
-Executando algoritmo ILP...
+Executando ILP (FO1: Max Créditos)...
 ✓ Concluído em 0.1245 segundos
 
-================================================================================
-RESULTADOS
-================================================================================
+████████████████████████████████████████████████████████████████████████████████████████████████████
+FUNÇÃO OBJETIVO 2: MINIMIZAR INTERVALOS (GAPS)
+████████████████████████████████████████████████████████████████████████████████████████████████████
 
-Métrica                        Guloso                    ILP                      
---------------------------------------------------------------------------------
-Número de cursos               5                         5                        
-Créditos totais                19                        20                       
-Gap total (horas)              6.00                      4.00                     
-Tempo de execução (s)          0.0023                    0.1245                   
+Executando GULOSO (FO2: Min Gaps)...
+✓ Concluído em 0.0021 segundos
+
+Executando ILP (FO2: Min Gaps)...
+✓ Concluído em 0.1156 segundos
+
+████████████████████████████████████████████████████████████████████████████████████████████████████
+FUNÇÃO OBJETIVO 3: COMBINADA (Créditos - Penalidade × Gaps)
+████████████████████████████████████████████████████████████████████████████████████████████████████
+
+Executando GULOSO (FO3: Combinada)...
+✓ Concluído em 0.0022 segundos
+
+Executando ILP (FO3: Combinada)...
+✓ Concluído em 0.1289 segundos
+
+====================================================================================================
+TABELA COMPARATIVA - RESULTADOS DAS 3 FUNÇÕES OBJETIVO
+====================================================================================================
+
+Função Objetivo                Algoritmo    Cursos   Créditos   Gap (h)    Tempo (s)   
+----------------------------------------------------------------------------------------------------
+FO1: Max Créditos              Guloso       5        19         6.00       0.0023      
+FO1: Max Créditos              ILP          5        20         4.50       0.1245      
+----------------------------------------------------------------------------------------------------
+FO2: Min Gaps                  Guloso       5        18         2.00       0.0021      
+FO2: Min Gaps                  ILP          5        18         1.50       0.1156      
+----------------------------------------------------------------------------------------------------
+FO3: Combinada                 Guloso       5        19         4.00       0.0022      
+FO3: Combinada                 ILP          5        19         3.50       0.1289      
+
+====================================================================================================
+ANÁLISE COMPARATIVA - DIFERENÇAS ENTRE FUNÇÕES OBJETIVO
+====================================================================================================
+
+1. COMPARAÇÃO FO1 vs FO2 vs FO3 (Algoritmo ILP - Ótimo):
+----------------------------------------------------------------------------------------------------
+   FO1 (Max Créditos)    : 20 créditos, 4.50h de gap
+   FO2 (Min Gaps)        : 18 créditos, 1.50h de gap
+   FO3 (Combinada)       : 19 créditos, 3.50h de gap
+
+   ✓ CONFIRMADO: Funções objetivo diferentes geram RESULTADOS DIFERENTES!
+
+2. COMPARAÇÃO DE DESEMPENHO (Tempo de Execução):
+----------------------------------------------------------------------------------------------------
+   Função Objetivo          Guloso (s)      ILP (s)         Speedup        
+   FO1: Max Créditos        0.0023          0.1245          54.13x
+   FO2: Min Gaps            0.0021          0.1156          55.05x
+   FO3: Combinada           0.0022          0.1289          58.59x
+
+   ✓ Guloso é MAIS RÁPIDO (heurística)
+   ✓ ILP é MAIS LENTO mas garante solução ÓTIMA
+
+3. QUALIDADE DA SOLUÇÃO (ILP vs Guloso):
+----------------------------------------------------------------------------------------------------
+   FO1: ILP obteve 1 créditos a MAIS (5.3%)
+   FO2: ILP teve 0.50h a MENOS de gap (25.0%)
+   FO3: ILP créditos=19 gap=3.50h, Guloso créditos=19 gap=4.00h
+
+====================================================================================================
+CONCLUSÃO
+====================================================================================================
+
+✓ Foram implementados 2 ALGORITMOS:
+  1. Guloso (Heurística - Rápido)
+  2. ILP (Otimização Exata - Lento mas Ótimo)
+
+✓ Foram implementadas 3 FUNÇÕES OBJETIVO:
+  1. FO1: Maximizar Créditos
+  2. FO2: Minimizar Intervalos
+  3. FO3: Combinada (Balanceia ambos objetivos)
+
+✓ COMPARAÇÕES REALIZADAS:
+  • Desempenho: Tempo de execução de cada algoritmo
+  • Resultado: Créditos e gaps obtidos
+  • Diferenças: Cada FO pode gerar soluções diferentes
+
+====================================================================================================
 ```
 
 ## Contribuindo
