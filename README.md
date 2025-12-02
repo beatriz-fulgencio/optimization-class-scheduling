@@ -207,7 +207,8 @@ Contribuições são bem-vindas! Por favor:
 Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
 ## Autor
-
+André Arantes
+Beatriz Demetrio
 Beatriz Fulgêncio
 
 ## Referências
