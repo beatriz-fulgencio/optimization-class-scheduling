@@ -1,5 +1,5 @@
 """
-Script de comparação entre algoritmos Guloso e ILP com 3 funções objetivo.
+Script de comparação entre algoritmos Branch and Bound e ILP com 3 funções objetivo.
 
 Este script compara o desempenho e resultados dos algoritmos
 de agendamento de cursos usando 3 funções objetivo diferentes:
@@ -12,10 +12,10 @@ import json
 import time
 from typing import List, Set, Dict, Tuple
 from src.course import Course
-from src.greedy_algorithm import (
-    greedy_schedule_max_credits,
-    greedy_schedule_min_gaps,
-    greedy_schedule
+from src.branch_and_bound_algorithm import (
+    branch_and_bound_schedule_max_credits,
+    branch_and_bound_schedule_min_gaps,
+    branch_and_bound_schedule
 )
 from src.ilp_algorithm import (
     ilp_schedule_max_credits,
@@ -76,7 +76,7 @@ def compare_algorithms(
     gap_penalty: float = 0.1
 ) -> Dict:
     """
-    Compara os algoritmos Guloso e ILP usando 3 funções objetivo diferentes.
+    Compara os algoritmos Branch and Bound e ILP usando 3 funções objetivo diferentes.
     
     Args:
         available_courses: Lista de cursos disponíveis
@@ -110,11 +110,11 @@ def compare_algorithms(
     print("█" * 100)
     print()
     
-    print("Executando GULOSO (FO1: Max Créditos)...")
-    g1_courses, g1_credits, g1_gap, g1_time = run_algorithm(
-        greedy_schedule_max_credits, available_courses, completed_course_ids
+    print("Executando BRANCH AND BOUND (FO1: Max Créditos)...")
+    bnb1_courses, bnb1_credits, bnb1_gap, bnb1_time = run_algorithm(
+        branch_and_bound_schedule_max_credits, available_courses, completed_course_ids
     )
-    print(f"✓ Concluído em {g1_time:.4f} segundos")
+    print(f"✓ Concluído em {bnb1_time:.4f} segundos")
     print()
     
     print("Executando ILP (FO1: Max Créditos)...")
@@ -125,7 +125,7 @@ def compare_algorithms(
     print()
     
     results['fo1'] = {
-        'greedy': {'courses': g1_courses, 'credits': g1_credits, 'gap': g1_gap, 'time': g1_time},
+        'bnb': {'courses': bnb1_courses, 'credits': bnb1_credits, 'gap': bnb1_gap, 'time': bnb1_time},
         'ilp': {'courses': i1_courses, 'credits': i1_credits, 'gap': i1_gap, 'time': i1_time}
     }
     
@@ -135,11 +135,11 @@ def compare_algorithms(
     print("█" * 100)
     print()
     
-    print("Executando GULOSO (FO2: Min Gaps)...")
-    g2_courses, g2_credits, g2_gap, g2_time = run_algorithm(
-        greedy_schedule_min_gaps, available_courses, completed_course_ids
+    print("Executando BRANCH AND BOUND (FO2: Min Gaps)...")
+    bnb2_courses, bnb2_credits, bnb2_gap, bnb2_time = run_algorithm(
+        branch_and_bound_schedule_min_gaps, available_courses, completed_course_ids
     )
-    print(f"✓ Concluído em {g2_time:.4f} segundos")
+    print(f"✓ Concluído em {bnb2_time:.4f} segundos")
     print()
     
     print("Executando ILP (FO2: Min Gaps)...")
@@ -150,7 +150,7 @@ def compare_algorithms(
     print()
     
     results['fo2'] = {
-        'greedy': {'courses': g2_courses, 'credits': g2_credits, 'gap': g2_gap, 'time': g2_time},
+        'bnb': {'courses': bnb2_courses, 'credits': bnb2_credits, 'gap': bnb2_gap, 'time': bnb2_time},
         'ilp': {'courses': i2_courses, 'credits': i2_credits, 'gap': i2_gap, 'time': i2_time}
     }
     
@@ -161,11 +161,11 @@ def compare_algorithms(
     print("█" * 100)
     print()
     
-    print("Executando GULOSO (FO3: Combinada)...")
-    g3_courses, g3_credits, g3_gap, g3_time = run_algorithm(
-        greedy_schedule, available_courses, completed_course_ids
+    print("Executando BRANCH AND BOUND (FO3: Combinada)...")
+    bnb3_courses, bnb3_credits, bnb3_gap, bnb3_time = run_algorithm(
+        branch_and_bound_schedule, available_courses, completed_course_ids, gap_penalty
     )
-    print(f"✓ Concluído em {g3_time:.4f} segundos")
+    print(f"✓ Concluído em {bnb3_time:.4f} segundos")
     print()
     
     print("Executando ILP (FO3: Combinada)...")
@@ -176,7 +176,7 @@ def compare_algorithms(
     print()
     
     results['fo3'] = {
-        'greedy': {'courses': g3_courses, 'credits': g3_credits, 'gap': g3_gap, 'time': g3_time},
+        'bnb': {'courses': bnb3_courses, 'credits': bnb3_credits, 'gap': bnb3_gap, 'time': bnb3_time},
         'ilp': {'courses': i3_courses, 'credits': i3_credits, 'gap': i3_gap, 'time': i3_time}
     }
     
@@ -190,17 +190,17 @@ def compare_algorithms(
     print("-" * 100)
     
     # FO1
-    print(f"{'FO1: Max Créditos':<30} {'Guloso':<12} {len(g1_courses):<8} {g1_credits:<10} {g1_gap:<10.2f} {g1_time:<12.4f}")
+    print(f"{'FO1: Max Créditos':<30} {'Branch&Bound':<12} {len(bnb1_courses):<8} {bnb1_credits:<10} {bnb1_gap:<10.2f} {bnb1_time:<12.4f}")
     print(f"{'FO1: Max Créditos':<30} {'ILP':<12} {len(i1_courses):<8} {i1_credits:<10} {i1_gap:<10.2f} {i1_time:<12.4f}")
     print("-" * 100)
     
     # FO2
-    print(f"{'FO2: Min Gaps':<30} {'Guloso':<12} {len(g2_courses):<8} {g2_credits:<10} {g2_gap:<10.2f} {g2_time:<12.4f}")
+    print(f"{'FO2: Min Gaps':<30} {'Branch&Bound':<12} {len(bnb2_courses):<8} {bnb2_credits:<10} {bnb2_gap:<10.2f} {bnb2_time:<12.4f}")
     print(f"{'FO2: Min Gaps':<30} {'ILP':<12} {len(i2_courses):<8} {i2_credits:<10} {i2_gap:<10.2f} {i2_time:<12.4f}")
     print("-" * 100)
     
     # FO3
-    print(f"{'FO3: Combinada':<30} {'Guloso':<12} {len(g3_courses):<8} {g3_credits:<10} {g3_gap:<10.2f} {g3_time:<12.4f}")
+    print(f"{'FO3: Combinada':<30} {'Branch&Bound':<12} {len(bnb3_courses):<8} {bnb3_credits:<10} {bnb3_gap:<10.2f} {bnb3_time:<12.4f}")
     print(f"{'FO3: Combinada':<30} {'ILP':<12} {len(i3_courses):<8} {i3_credits:<10} {i3_gap:<10.2f} {i3_time:<12.4f}")
     print()
     
@@ -226,36 +226,42 @@ def compare_algorithms(
     
     print("2. COMPARAÇÃO DE DESEMPENHO (Tempo de Execução):")
     print("-" * 100)
-    print(f"   {'Função Objetivo':<25} {'Guloso (s)':<15} {'ILP (s)':<15} {'Speedup':<15}")
-    print(f"   {'FO1: Max Créditos':<25} {g1_time:<15.4f} {i1_time:<15.4f} {i1_time/g1_time if g1_time > 0 else 0:<15.2f}x")
-    print(f"   {'FO2: Min Gaps':<25} {g2_time:<15.4f} {i2_time:<15.4f} {i2_time/g2_time if g2_time > 0 else 0:<15.2f}x")
-    print(f"   {'FO3: Combinada':<25} {g3_time:<15.4f} {i3_time:<15.4f} {i3_time/g3_time if g3_time > 0 else 0:<15.2f}x")
+    print(f"   {'Função Objetivo':<25} {'B&B (s)':<15} {'ILP (s)':<15} {'Speedup':<15}")
+    print(f"   {'FO1: Max Créditos':<25} {bnb1_time:<15.4f} {i1_time:<15.4f} {i1_time/bnb1_time if bnb1_time > 0 else 0:<15.2f}x")
+    print(f"   {'FO2: Min Gaps':<25} {bnb2_time:<15.4f} {i2_time:<15.4f} {i2_time/bnb2_time if bnb2_time > 0 else 0:<15.2f}x")
+    print(f"   {'FO3: Combinada':<25} {bnb3_time:<15.4f} {i3_time:<15.4f} {i3_time/bnb3_time if bnb3_time > 0 else 0:<15.2f}x")
     print()
-    print(f"   ✓ Guloso é MAIS RÁPIDO (heurística)")
-    print(f"   ✓ ILP é MAIS LENTO mas garante solução ÓTIMA")
+    print(f"   ✓ Branch and Bound explora sistematicamente o espaço de soluções com poda")
+    print(f"   ✓ ILP formula o problema como otimização linear inteira")
+    print(f"   ✓ Ambos garantem solução ÓTIMA")
     print()
     
-    print("3. QUALIDADE DA SOLUÇÃO (ILP vs Guloso):")
+    print("3. QUALIDADE DA SOLUÇÃO (ILP vs Branch and Bound):")
     print("-" * 100)
     
     # FO1
-    if i1_credits > g1_credits:
-        print(f"   FO1: ILP obteve {i1_credits - g1_credits} créditos a MAIS ({((i1_credits-g1_credits)/g1_credits*100):.1f}%)")
-    elif i1_credits < g1_credits:
-        print(f"   FO1: Guloso obteve {g1_credits - i1_credits} créditos a MAIS")
+    if i1_credits > bnb1_credits:
+        print(f"   FO1: ILP obteve {i1_credits - bnb1_credits} créditos a MAIS ({((i1_credits-bnb1_credits)/bnb1_credits*100 if bnb1_credits > 0 else 0):.1f}%)")
+    elif i1_credits < bnb1_credits:
+        print(f"   FO1: Branch&Bound obteve {bnb1_credits - i1_credits} créditos a MAIS")
     else:
-        print(f"   FO1: Mesma quantidade de créditos ({i1_credits})")
+        print(f"   FO1: Mesma quantidade de créditos ({i1_credits}) - Ambos ótimos!")
     
     # FO2
-    if i2_gap < g2_gap:
-        print(f"   FO2: ILP teve {g2_gap - i2_gap:.2f}h a MENOS de gap ({((g2_gap-i2_gap)/g2_gap*100):.1f}%)")
-    elif i2_gap > g2_gap:
-        print(f"   FO2: Guloso teve {i2_gap - g2_gap:.2f}h a MENOS de gap")
+    if bnb2_credits > 0 and bnb2_gap > 0:
+        if i2_gap < bnb2_gap:
+            print(f"   FO2: ILP teve {bnb2_gap - i2_gap:.2f}h a MENOS de gap ({((bnb2_gap-i2_gap)/bnb2_gap*100):.1f}%)")
+        elif i2_gap > bnb2_gap:
+            print(f"   FO2: Branch&Bound teve {i2_gap - bnb2_gap:.2f}h a MENOS de gap")
+        else:
+            print(f"   FO2: Mesmo gap total ({i2_gap:.2f}h) - Ambos ótimos!")
     else:
-        print(f"   FO2: Mesmo gap total ({i2_gap:.2f}h)")
+        print(f"   FO2: Branch&Bound créditos={bnb2_credits} gap={bnb2_gap:.2f}h, ILP créditos={i2_credits} gap={i2_gap:.2f}h")
     
     # FO3
-    print(f"   FO3: ILP créditos={i3_credits} gap={i3_gap:.2f}h, Guloso créditos={g3_credits} gap={g3_gap:.2f}h")
+    print(f"   FO3: ILP créditos={i3_credits} gap={i3_gap:.2f}h, Branch&Bound créditos={bnb3_credits} gap={bnb3_gap:.2f}h")
+    if i3_credits == bnb3_credits and abs(i3_gap - bnb3_gap) < 0.01:
+        print(f"        Ambos encontraram a MESMA solução ótima!")
     print()
     
     # ========== CURSOS SELECIONADOS ==========
@@ -272,8 +278,8 @@ def compare_algorithms(
             print(f"  {course.id:<10} {course.name:<40} {course.start_time:.1f}h-{course.end_time:.1f}h ({course.credits} créd)")
         print()
         
-        print(f"--- {fo_name} - Guloso (Heurística) ---")
-        for course in sorted(fo_data['greedy']['courses'], key=lambda c: c.start_time):
+        print(f"--- {fo_name} - Branch and Bound (Ótimo) ---")
+        for course in sorted(fo_data['bnb']['courses'], key=lambda c: c.start_time):
             print(f"  {course.id:<10} {course.name:<40} {course.start_time:.1f}h-{course.end_time:.1f}h ({course.credits} créd)")
         print()
     
@@ -282,8 +288,8 @@ def compare_algorithms(
     print("=" * 100)
     print()
     print("✓ Foram implementados 2 ALGORITMOS:")
-    print("  1. Guloso (Heurística - Rápido)")
-    print("  2. ILP (Otimização Exata - Lento mas Ótimo)")
+    print("  1. Branch and Bound (Busca Sistemática com Poda - Ótimo)")
+    print("  2. ILP (Programação Linear Inteira - Ótimo)")
     print()
     print("✓ Foram implementadas 3 FUNÇÕES OBJETIVO:")
     print("  1. FO1: Maximizar Créditos")
@@ -294,6 +300,7 @@ def compare_algorithms(
     print("  • Desempenho: Tempo de execução de cada algoritmo")
     print("  • Resultado: Créditos e gaps obtidos")
     print("  • Diferenças: Cada FO pode gerar soluções diferentes")
+    print("  • Ambos algoritmos garantem solução ótima")
     print()
     print("=" * 100)
     

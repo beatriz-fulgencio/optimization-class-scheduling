@@ -6,7 +6,7 @@ ponderado de intervalos (Weighted Interval Scheduling) no contexto acadêmico.
 """
 
 from src.course import Course
-from src.greedy_algorithm import greedy_schedule, greedy_schedule_with_info
+from src.branch_and_bound_algorithm import branch_and_bound_schedule, branch_and_bound_schedule_with_info
 from src.ilp_algorithm import ilp_schedule, ilp_schedule_with_info
 from src.utils import (
     check_conflicts,
@@ -19,8 +19,8 @@ from src.utils import (
 
 __all__ = [
     'Course',
-    'greedy_schedule',
-    'greedy_schedule_with_info',
+    'branch_and_bound_schedule',
+    'branch_and_bound_schedule_with_info',
     'ilp_schedule',
     'ilp_schedule_with_info',
     'check_conflicts',

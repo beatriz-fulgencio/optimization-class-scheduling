@@ -12,9 +12,9 @@ Este projeto foi desenvolvido com as seguintes limitações:
 
 Este repositório implementa dois algoritmos para resolver o problema de agendamento ponderado de intervalos no contexto de cursos acadêmicos:
 
-1. **Algoritmo Guloso (Heurístico)**: Solução rápida baseada em heurísticas para ordenação de cursos. Três variantes são implementadas:
-   - **FO1**: Ordena por créditos (maior primeiro) - foco em maximizar créditos
-   - **FO2**: Ordena por horário de término (menor primeiro) - foco em minimizar gaps
+1. **Branch and Bound**: Algoritmo de busca sistemática que explora o espaço de soluções com podas inteligentes. Três variantes são implementadas:
+   - **FO1**: Ordena por créditos (maior primeiro) e explora sistematicamente - foco em maximizar créditos
+   - **FO2**: Ordena por horário de término e minimiza gaps - foco em minimizar intervalos
    - **FO3**: Ordena pela razão `end_time/credits` - abordagem balanceada
 
 2. **Programação Linear Inteira (ILP)**: Solução exata que garante resultado ótimo. Três funções objetivo são implementadas:
@@ -93,10 +93,10 @@ Este comando irá:
 
 ```python
 from src.course import Course
-from src.greedy_algorithm import (
-    greedy_schedule_max_credits,  # FO1: Max créditos
-    greedy_schedule_min_gaps,      # FO2: Min gaps
-    greedy_schedule                # FO3: Combinada
+from src.branch_and_bound_algorithm import (
+    branch_and_bound_schedule_max_credits,  # FO1: Max créditos
+    branch_and_bound_schedule_min_gaps,      # FO2: Min gaps
+    branch_and_bound_schedule                # FO3: Combinada
 )
 from src.ilp_algorithm import (
     ilp_schedule_max_credits,      # FO1: Max créditos
@@ -112,22 +112,22 @@ courses = [
 ]
 
 # FO1: Maximizar créditos
-selected, credits, gap = greedy_schedule_max_credits(courses)
-print(f"FO1 - Guloso: {credits} créditos, {gap:.1f}h de gap")
+selected, credits, gap = branch_and_bound_schedule_max_credits(courses)
+print(f"FO1 - Branch&Bound: {credits} créditos, {gap:.1f}h de gap")
 
 selected, credits, gap = ilp_schedule_max_credits(courses)
 print(f"FO1 - ILP: {credits} créditos, {gap:.1f}h de gap")
 
 # FO2: Minimizar gaps
-selected, credits, gap = greedy_schedule_min_gaps(courses)
-print(f"FO2 - Guloso: {credits} créditos, {gap:.1f}h de gap")
+selected, credits, gap = branch_and_bound_schedule_min_gaps(courses)
+print(f"FO2 - Branch&Bound: {credits} créditos, {gap:.1f}h de gap")
 
 selected, credits, gap = ilp_schedule_min_gaps(courses)
 print(f"FO2 - ILP: {credits} créditos, {gap:.1f}h de gap")
 
 # FO3: Combinada
-selected, credits, gap = greedy_schedule(courses)
-print(f"FO3 - Guloso: {credits} créditos, {gap:.1f}h de gap")
+selected, credits, gap = branch_and_bound_schedule(courses)
+print(f"FO3 - Branch&Bound: {credits} créditos, {gap:.1f}h de gap")
 
 selected, credits, gap = ilp_schedule(courses, gap_penalty=0.1)
 print(f"FO3 - ILP: {credits} créditos, {gap:.1f}h de gap")
@@ -198,21 +198,23 @@ optimization/
 
 ## Algoritmos
 
-### Algoritmo Guloso
+### Branch and Bound
 
-- **Complexidade**: O(n² log n) onde n é o número de cursos
-- **Vantagem**: Muito rápido, mesmo para grandes conjuntos de dados
-- **Limitação**: Solução heurística, pode não ser ótima
+- **Complexidade**: Exponencial no pior caso, mas com podas eficientes
+- **Vantagem**: Explora sistematicamente o espaço de soluções, garante solução ótima
+- **Técnica**: Usa limites superiores (upper bounds) para podar ramos que não podem levar a soluções melhores
+- **Limitação**: Pode ser lento para problemas muito grandes
 
 **Três variantes implementadas:**
-1. **FO1 (Max Créditos)**: Ordena por `-credits, end_time`
-2. **FO2 (Min Gaps)**: Ordena por `end_time`
-3. **FO3 (Combinada)**: Ordena por `end_time/credits`
+1. **FO1 (Max Créditos)**: Ordena por `-credits, end_time` e poda baseado em créditos remanescentes
+2. **FO2 (Min Gaps)**: Ordena por `end_time` e poda baseado em gaps acumulados
+3. **FO3 (Combinada)**: Ordena por `end_time/credits` e poda baseado em objetivo combinado
 
 ### Algoritmo ILP
 
 - **Complexidade**: Exponencial no pior caso (NP-difícil)
-- **Vantagem**: Garante solução ótima
+- **Vantagem**: Garante solução ótima usando solvers especializados
+- **Técnica**: Formula o problema como otimização linear inteira
 - **Limitação**: Pode ser lento para problemas muito grandes
 
 **Três funções objetivo implementadas:**
@@ -233,7 +235,7 @@ O projeto demonstra que **funções objetivo diferentes geram resultados diferen
 O sistema compara os algoritmos em três dimensões:
 
 1. **Desempenho**: Tempo de execução de cada algoritmo
-   - Guloso: Geralmente < 0.01 segundos
+   - Branch and Bound: Geralmente < 0.01 segundos para instâncias pequenas
    - ILP: Pode variar de 0.1 a vários segundos
 
 2. **Resultado**: Qualidade da solução
@@ -241,8 +243,9 @@ O sistema compara os algoritmos em três dimensões:
    - Gap total (horas ociosas)
    
 3. **Otimalidade**: 
-   - ILP garante solução ótima para cada FO
-   - Guloso oferece solução boa mas não necessariamente ótima
+   - Ambos algoritmos garantem solução ótima
+   - Branch and Bound: Busca sistemática com poda
+   - ILP: Formulação como problema de otimização linear inteira
 
 ## Restrições
 
@@ -341,8 +344,8 @@ CONCLUSÃO
 ====================================================================================================
 
 ✓ Foram implementados 2 ALGORITMOS:
-  1. Guloso (Heurística - Rápido)
-  2. ILP (Otimização Exata - Lento mas Ótimo)
+  1. Branch and Bound (Busca Sistemática com Poda - Ótimo)
+  2. ILP (Programação Linear Inteira - Ótimo)
 
 ✓ Foram implementadas 3 FUNÇÕES OBJETIVO:
   1. FO1: Maximizar Créditos

@@ -6,7 +6,7 @@ import pytest
 import json
 import os
 from src.course import Course
-from src.greedy_algorithm import greedy_schedule
+from src.branch_and_bound_algorithm import branch_and_bound_schedule
 from src.ilp_algorithm import ilp_schedule
 from src.compare import load_courses_from_json, compare_algorithms
 
@@ -79,7 +79,7 @@ def test_algorithms_produce_valid_schedules():
     ]
     
     # Testa algoritmo guloso
-    greedy_selected, greedy_credits, greedy_gap = greedy_schedule(courses)
+    greedy_selected, greedy_credits, greedy_gap = branch_and_bound_schedule(courses)
     
     # Verifica que não há conflitos
     for i, course1 in enumerate(greedy_selected):
@@ -104,7 +104,7 @@ def test_ilp_better_or_equal_to_greedy():
         Course("C4", "Course 4", 13.0, 15.0, 4),
     ]
     
-    greedy_selected, greedy_credits, greedy_gap = greedy_schedule(courses)
+    greedy_selected, greedy_credits, greedy_gap = branch_and_bound_schedule(courses)
     ilp_selected, ilp_credits, ilp_gap = ilp_schedule(courses)
     
     # ILP deve obter créditos >= guloso (é uma solução ótima)
@@ -129,12 +129,12 @@ def test_compare_algorithms_runs():
     
     # Verifica que cada FO tem resultados de ambos algoritmos
     for fo in ['fo1', 'fo2', 'fo3']:
-        assert 'greedy' in result[fo]
+        assert 'bnb' in result[fo]
         assert 'ilp' in result[fo]
-        assert 'courses' in result[fo]['greedy']
-        assert 'credits' in result[fo]['greedy']
-        assert 'gap' in result[fo]['greedy']
-        assert 'time' in result[fo]['greedy']
+        assert 'courses' in result[fo]['bnb']
+        assert 'credits' in result[fo]['bnb']
+        assert 'gap' in result[fo]['bnb']
+        assert 'time' in result[fo]['bnb']
 
 
 def test_complex_scenario():
@@ -148,7 +148,7 @@ def test_complex_scenario():
         Course("C6", "Course 6", 15.0, 17.0, 4),
     ]
     
-    greedy_selected, greedy_credits, greedy_gap = greedy_schedule(courses)
+    greedy_selected, greedy_credits, greedy_gap = branch_and_bound_schedule(courses)
     ilp_selected, ilp_credits, ilp_gap = ilp_schedule(courses)
     
     # Ambos devem retornar cronogramas válidos
@@ -167,18 +167,18 @@ def test_prerequisites_chain():
     ]
     
     # Sem nenhum curso concluído
-    greedy_selected, _, _ = greedy_schedule(courses, completed_course_ids=set())
+    greedy_selected, _, _ = branch_and_bound_schedule(courses, completed_course_ids=set())
     assert len(greedy_selected) == 1  # Apenas C1 pode ser cursado
     assert any(c.id == "C1" for c in greedy_selected)
     
     # Com C1 concluído, passar apenas C2 e C3 como disponíveis
     remaining_courses = [c for c in courses if c.id != "C1"]
-    greedy_selected, _, _ = greedy_schedule(remaining_courses, completed_course_ids={"C1"})
+    greedy_selected, _, _ = branch_and_bound_schedule(remaining_courses, completed_course_ids={"C1"})
     assert len(greedy_selected) == 1  # Apenas C2 pode ser cursado (C3 precisa de C2)
     assert any(c.id == "C2" for c in greedy_selected)
     
     # Com C1 e C2 concluídos, passar apenas C3 como disponível
     remaining_courses = [c for c in courses if c.id not in ["C1", "C2"]]
-    greedy_selected, _, _ = greedy_schedule(remaining_courses, completed_course_ids={"C1", "C2"})
+    greedy_selected, _, _ = branch_and_bound_schedule(remaining_courses, completed_course_ids={"C1", "C2"})
     assert len(greedy_selected) == 1  # Apenas C3
     assert any(c.id == "C3" for c in greedy_selected)
