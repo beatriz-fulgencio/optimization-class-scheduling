@@ -360,24 +360,10 @@ CONCLUSÃO
 ====================================================================================================
 ```
 
-## Contribuindo
-
-Contribuições são bem-vindas! Por favor:
-
-1. Faça fork do repositório
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -am 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
-
-## Licença
-
-Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
 ## Autor
-André Arantes
-Beatriz Demetrio
-Beatriz Fulgêncio
+- André Arantes
+- Beatriz Demetrio
+- Beatriz Fulgêncio
 
 ## Referências
 
