@@ -42,19 +42,6 @@ O sistema implementa **3 funções objetivo diferentes**, permitindo comparar co
 - **Trade-off**: Solução intermediária que considera ambos aspectos
 - **Uso**: Ideal para a maioria dos casos, oferecendo um equilíbrio
 
-## Características
-
-- ✅ Modelo de curso com horários, créditos e pré-requisitos
-- ✅ Verificador de conflitos de horário
-- ✅ Calculadora de intervalos ociosos (gaps)
-- ✅ Algoritmo guloso eficiente
-- ✅ Algoritmo ILP para solução ótima
-- ✅ Script de comparação entre algoritmos
-- ✅ Dados de exemplo realistas
-- ✅ Testes abrangentes
-- ✅ Type hints completos
-- ✅ Docstrings em português
-
 ## Instalação
 
 ```bash
@@ -81,13 +68,6 @@ Ou especifique um arquivo JSON personalizado:
 ```bash
 python -m src.compare data/meus_cursos.json
 ```
-
-Este comando irá:
-- Executar os algoritmos Guloso e ILP
-- Testar as 3 funções objetivo (FO1, FO2, FO3)
-- Comparar desempenho (tempo de execução)
-- Comparar resultados (créditos e gaps)
-- Mostrar que funções objetivo diferentes geram resultados diferentes
 
 ### Usar no Código Python
 
@@ -173,29 +153,6 @@ pytest tests/test_greedy_algorithm.py
 pytest tests/test_ilp_algorithm.py
 ```
 
-## Estrutura do Projeto
-
-```
-optimization/
-├── src/
-│   ├── __init__.py
-│   ├── course.py              # Modelo de curso
-│   ├── utils.py               # Utilitários (conflitos, gaps)
-│   ├── greedy_algorithm.py    # Algoritmo guloso
-│   ├── ilp_algorithm.py       # Algoritmo ILP
-│   └── compare.py             # Script de comparação
-├── tests/
-│   ├── test_course.py
-│   ├── test_utils.py
-│   ├── test_greedy_algorithm.py
-│   ├── test_ilp_algorithm.py
-│   └── test_integration.py
-├── data/
-│   └── sample_courses.json    # Dados de exemplo
-├── requirements.txt
-└── README.md
-```
-
 ## Algoritmos
 
 ### Branch and Bound
@@ -270,7 +227,7 @@ LIMITAÇÕES DO PROJETO:
 FUNÇÃO OBJETIVO 1: MAXIMIZAR CRÉDITOS
 ████████████████████████████████████████████████████████████████████████████████████████████████████
 
-Executando GULOSO (FO1: Max Créditos)...
+Executando Branch and Bound (FO1: Max Créditos)...
 ✓ Concluído em 0.0023 segundos
 
 Executando ILP (FO1: Max Créditos)...
